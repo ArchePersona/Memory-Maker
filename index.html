@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Robin's Memory Companion - A visual directory of loving family, friends, and caregivers">
+  <meta name="theme-color" content="#FFF8EE">
+  <title>Robin's Memory Companion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-warm text-scale-normal grid-size-large">
+
+  <!-- Top Reassuring Header -->
+  <header class="app-header" role="banner">
+    <div class="header-container">
+      <div class="greeting-block">
+        <h1 class="app-title">Robin's Loved Ones</h1>
+        <p class="date-reassurance" id="todayBanner" aria-live="polite">Today is a beautiful day. You are safe, home, and surrounded by love.</p>
+      </div>
+      <div class="header-actions">
+        <button id="voiceSearchBtn" class="btn-circle voice-btn" aria-label="Search by speaking">
+          <span class="icon" aria-hidden="true">🎙️</span>
+          <span class="btn-caption">Speak</span>
+        </button>
+        <button id="caregiverLockBtn" class="btn-pill caregiver-btn" aria-label="Open Caregiver Mode">
+          <span class="icon" aria-hidden="true">🔒</span>
+          <span class="btn-label">Caregiver Area</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search & Quick Navigation Bar -->
+    <div class="search-nav-section">
+      <div class="search-bar-wrapper">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input type="search" id="searchInput" class="large-search-input" placeholder="Find someone (e.g., Sarah, Grandson, Doctor)..." aria-label="Search contacts by name or relationship">
+        <button id="clearSearchBtn" class="clear-search-btn" aria-label="Clear search" style="display: none;">✕</button>
+      </div>
+    </div>
+
+    <!-- Category Filter Bar -->
+    <nav class="category-nav" aria-label="Filter contacts by relationship category">
+      <div class="category-scroll" id="categoryPills">
+        <button class="category-pill active" data-category="all">🌟 Everyone</button>
+        <button class="category-pill" data-category="immediate">🏡 Immediate Family</button>
+        <button class="category-pill" data-category="extended">🌳 Extended Family</button>
+        <button class="category-pill" data-category="friends">🤝 Friends</button>
+        <button class="category-pill" data-category="caregivers">🩺 Caregivers & Doctors</button>
+        <button class="category-pill" data-category="neighbors">🌻 Neighbors & Pets</button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content: Face Grid -->
+  <main class="main-content" id="mainContent" role="main">
+    <div class="grid-summary" id="gridSummary" aria-live="polite">Showing all loved ones</div>
+    <div class="face-grid" id="faceGrid" role="list">
+      <!-- Contact cards dynamically rendered here -->
+    </div>
+
+    <!-- Empty Search State -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+      <div class="empty-icon">🌸</div>
+      <h2>We couldn't find a match</h2>
+      <p>Try searching for a different name or tap "Show Everyone" below.</p>
+      <button id="resetSearchBtn" class="btn-action primary-btn">Show Everyone</button>
+    </div>
+  </main>
+
+  <!-- Bottom Reassuring Home Bar (Always Accessible) -->
+  <footer class="app-bottom-bar" role="contentinfo">
+    <button id="homeBottomBtn" class="bottom-nav-btn active-home" aria-label="Back to top of home directory">
+      <span class="nav-icon" aria-hidden="true">🏠</span>
+      <span class="nav-text">Home Screen</span>
+    </button>
+    <button id="readDailyWisdomBtn" class="bottom-nav-btn" aria-label="Hear comforting reminder">
+      <span class="nav-icon" aria-hidden="true">💬</span>
+      <span class="nav-text">Read Comfort Note</span>
+    </button>
+    <button id="emergencyInfoBtn" class="bottom-nav-btn" aria-label="Emergency & primary help contacts">
+      <span class="nav-icon" aria-hidden="true">❤️</span>
+      <span class="nav-text">Key Helpers</span>
+    </button>
+  </footer>
+
+  <!-- Fullscreen Contact Profile Detail View Modal -->
+  <div id="profileModal" class="modal-backdrop profile-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="profileName" aria-hidden="true">
+    <div class="profile-detail-card">
+      <button id="closeProfileBtn" class="btn-circle close-modal-btn" aria-label="Back to faces list">
+        <span aria-hidden="true">←</span>
+        <span class="btn-caption">Back</span>
+      </button>
+
+      <div class="profile-scroll-body">
+        <div class="profile-hero">
+          <div class="profile-avatar-container">
+            <img id="profilePhoto" class="profile-hero-img" src="" alt="Profile Photo">
+            <button id="listenNameBtn" class="audio-play-hero-btn" aria-label="Listen to name and relationship">
+              <span class="icon" aria-hidden="true">🔊</span>
+              <span>Read Name</span>
+            </button>
+          </div>
+          <div class="profile-titles">
+            <span id="profileCategoryBadge" class="profile-badge">Category</span>
+            <h2 id="profileName" class="profile-main-name">Contact Name</h2>
+            <p id="profileNickname" class="profile-nickname-text">"Calls you Grandpa"</p>
+            <p id="profileRelationship" class="profile-rel-badge">Daughter</p>
+          </div>
+        </div>
+
+        <!-- Quick Connect Options -->
+        <div class="profile-quick-actions" id="quickActionsRow">
+          <a id="profileCallLink" href="#" class="action-card-btn call-action">
+            <span class="action-icon">📞</span>
+            <span class="action-text">Call <strong id="profileCallName">Sarah</strong></span>
+          </a>
+          <button id="profileReadStoryBtn" class="action-card-btn speak-action">
+            <span class="action-icon">📖</span>
+            <span class="action-text">Listen to Story</span>
+          </button>
+        </div>
+
+        <!-- Memory Cues & Shared Context -->
+        <section class="profile-section memory-section">
+          <h3 class="section-label">💡 How to Remember</h3>
+          <div class="memory-box" id="profileContextNotes">
+            <!-- Context cues -->
+          </div>
+        </section>
+
+        <section class="profile-section memories-list-section">
+          <h3 class="section-label">🌟 Favorite Shared Memories</h3>
+          <ul class="memories-list" id="profileMemoriesList">
+            <!-- Memories -->
+          </ul>
+        </section>
+
+        <div class="reassurance-footer-tag">
+          <span>💖 Always in your heart and just a phone call away.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIN Protection Modal for Caregiver Mode -->
+  <div id="pinModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pinModalTitle" aria-hidden="true">
+    <div class="pin-card">
+      <button id="closePinBtn" class="pin-close-btn" aria-label="Cancel caregiver unlock">✕</button>
+      <h2 id="pinModalTitle" class="pin-title">Caregiver Access</h2>
+      <p class="pin-subtitle">Please enter the 4-digit PIN to manage Robin's loved ones.</p>
+      <div class="pin-display" id="pinDots" aria-label="PIN digits entered">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+      <div class="pin-keypad">
+        <button class="pin-key" data-val="1">1</button>
+        <button class="pin-key" data-val="2">2</button>
+        <button class="pin-key" data-val="3">3</button>
+        <button class="pin-key" data-val="4">4</button>
+        <button class="pin-key" data-val="5">5</button>
+        <button class="pin-key" data-val="6">6</button>
+        <button class="pin-key" data-val="7">7</button>
+        <button class="pin-key" data-val="8">8</button>
+        <button class="pin-key" data-val="9">9</button>
+        <button class="pin-key action" data-val="clear">Clear</button>
+        <button class="pin-key" data-val="0">0</button>
+        <button class="pin-key action" data-val="back">⌫</button>
+      </div>
+      <p class="pin-hint-text">(Default PIN: <strong>1234</strong>)</p>
+    </div>
+  </div>
+
+  <!-- Caregiver Management Modal / View -->
+  <div id="caregiverModal" class="modal-backdrop caregiver-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="caregiverTitle" aria-hidden="true">
+    <div class="caregiver-panel">
+      <div class="caregiver-header">
+        <div>
+          <h2 id="caregiverTitle">Caregiver Management Center</h2>
+          <p class="caregiver-desc">Safely add, update, or reorganize people and memories for Robin.</p>
+        </div>
+        <div class="caregiver-header-actions">
+          <button id="closeCaregiverBtn" class="btn-action secondary-btn">Exit Caregiver Mode</button>
+        </div>
+      </div>
+
+      <!-- Tabs for Manager -->
+      <div class="caregiver-tabs">
+        <button class="tab-btn active" data-tab="contactsTab">👥 Manage People</button>
+        <button class="tab-btn" data-tab="addContactTab">➕ Add New Person</button>
+        <button class="tab-btn" data-tab="settingsTab">⚙️ App Settings & PIN</button>
+      </div>
+
+      <!-- Tab Content 1: Contact List & Ordering -->
+      <div class="caregiver-tab-content active" id="contactsTab">
+        <div class="tab-header-flex">
+          <h3>Current Profiles (<span id="profileCountNum">0</span>)</h3>
+          <button id="addNewFromListBtn" class="btn-action primary-btn">+ Add Person</button>
+        </div>
+        <div class="contact-management-table-wrap">
+          <table class="caregiver-table">
+            <thead>
+              <tr>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Relationship</th>
+                <th>Category</th>
+                <th>Phone</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="caregiverTableBody">
+              <!-- Rows inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: Add / Edit Form -->
+      <div class="caregiver-tab-content" id="addContactTab">
+        <form id="contactForm" class="caregiver-form">
+          <input type="hidden" id="formContactId" value="">
+          <h3 id="formHeadingTitle">Add New Loved One</h3>
+          
+          <div class="form-grid">
+            <!-- Left Column: Photo -->
+            <div class="form-col-photo">
+              <label class="form-label">Profile Picture</label>
+              <div class="photo-preview-box">
+                <img id="formPhotoPreview" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80" alt="Preview">
+              </div>
+              <div class="photo-input-group">
+                <label class="file-upload-btn">
+                  📷 Upload from Device
+                  <input type="file" id="photoFileInput" accept="image/*" style="display: none;">
+                </label>
+                <span class="or-divider">or Image Web URL:</span>
+                <input type="url" id="formPhotoUrl" class="form-input" placeholder="https://example.com/photo.jpg">
+              </div>
+              <div class="preset-avatars-label">Or select quick preset:</div>
+              <div class="preset-avatar-chips" id="presetAvatarChips">
+                <!-- Avatars inserted via JS -->
+              </div>
+            </div>
+
+            <!-- Right Column: Info Fields -->
+            <div class="form-col-fields">
+              <div class="form-row">
+                <div class="form-field">
+                  <label for="formFullName" class="form-label">Full Name *</label>
+                  <input type="text" id="formFullName" class="form-input" required placeholder="e.g., Sarah Mitchell">
+                </div>
+                <div class="form-field">
+                  <label for="formNickname" class="form-label">Familiar Nickname / Connection Note</label>
+                  <input type="text" id="formNickname" class="form-input" placeholder="e.g., Calls you 'Dad', or 'Little Bear'">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-field">
+                  <label for="formRelationship" class="form-label">Relationship Label *</label>
+                  <input type="text" id="formRelationship" class="form-input" required placeholder="e.g., Oldest Daughter">
+                </div>
+                <div class="form-field">
+                  <label for="formCategory" class="form-label">Category *</label>
+                  <select id="formCategory" class="form-input" required>
+                    <option value="immediate">🏡 Immediate Family</option>
+                    <option value="extended">🌳 Extended Family</option>
+                    <option value="friends">🤝 Friends</option>
+                    <option value="caregivers">🩺 Caregivers & Doctors</option>
+                    <option value="neighbors">🌻 Neighbors & Pets</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-field">
+                  <label for="formPhone" class="form-label">Phone Number (Optional)</label>
+                  <input type="tel" id="formPhone" class="form-input" placeholder="e.g., (555) 234-5678">
+                </div>
+                <div class="form-field">
+                  <label for="formPriority" class="form-label">Is this an Emergency / Key Helper?</label>
+                  <select id="formPriority" class="form-input">
+                    <option value="false">No (Standard)</option>
+                    <option value="true">Yes (Shows in Key Helpers)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-field full-width">
+                <label for="formContextNotes" class="form-label">Key Recognition Cues (How Robin remembers them)</label>
+                <textarea id="formContextNotes" class="form-textarea" rows="3" placeholder="e.g., Sarah lives in Portland and brings blueberry muffins every Sunday morning. She has curly brown hair and works as an architect."></textarea>
+              </div>
+
+              <div class="form-field full-width">
+                <label for="formMemories" class="form-label">Favorite Shared Memories (1 per line)</label>
+                <textarea id="formMemories" class="form-textarea" rows="3" placeholder="Trip to Lake Tahoe in 2018
+Baking lemon tarts together
+Cheering at the high school soccer games"></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-action primary-btn" id="saveContactBtn">Save Profile</button>
+                <button type="button" class="btn-action secondary-btn" id="cancelFormBtn">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tab Content 3: Settings -->
+      <div class="caregiver-tab-content" id="settingsTab">
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Robin's Display Preferences</h3>
+            <div class="setting-item">
+              <label for="settingGridSize">Card Photo Size:</label>
+              <select id="settingGridSize" class="form-input">
+                <option value="grid-size-large">Large (Recommended)</option>
+                <option value="grid-size-xl">Extra Large (Maximum Visibility)</option>
+                <option value="grid-size-compact">Standard</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label for="settingTextScale">Typography Scale:</label>
+              <select id="settingTextScale" class="form-input">
+                <option value="text-scale-normal">Large (22pt Base)</option>
+                <option value="text-scale-xl">Extra Large (26pt Base)</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label for="settingTheme">Visual Contrast Theme:</label>
+              <select id="settingTheme" class="form-input">
+                <option value="theme-warm">Warm Comfort (Soft Gold & Terracotta)</option>
+                <option value="theme-high-contrast">Maximum High Contrast (Black & Yellow/White)</option>
+                <option value="theme-calm-blue">Calm Blue Sky</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <label for="settingVoiceSpeed">Speech Pronunciation Speed:</label>
+              <select id="settingVoiceSpeed" class="form-input">
+                <option value="0.8">Gentle & Relaxed (0.8x)</option>
+                <option value="0.95" selected>Natural (0.95x)</option>
+                <option value="1.1">Slightly Faster (1.1x)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h3>Security & Data Backup</h3>
+            <div class="setting-item">
+              <label for="newCaregiverPin">Change Caregiver PIN (4 digits):</label>
+              <div class="pin-change-row">
+                <input type="password" id="newCaregiverPin" maxlength="4" pattern="[0-9]{4}" placeholder="1234" class="form-input">
+                <button id="saveNewPinBtn" class="btn-action primary-btn small">Update PIN</button>
+              </div>
+            </div>
+            <hr class="settings-divider">
+            <div class="setting-actions-backup">
+              <button id="exportDataBtn" class="btn-action secondary-btn">📥 Backup / Export Data (JSON)</button>
+              <label class="btn-action secondary-btn">
+                📤 Restore from Backup
+                <input type="file" id="importDataFileInput" accept=".json" style="display:none;">
+              </label>
+              <button id="resetDefaultsBtn" class="btn-action warning-btn">↺ Reset to Default Sample Profiles</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Helpers / Emergency Quick View Modal -->
+  <div id="emergencyModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="emergencyTitle" aria-hidden="true">
+    <div class="emergency-card">
+      <button id="closeEmergencyBtn" class="btn-circle close-modal-btn" aria-label="Close key helpers view">
+        <span aria-hidden="true">✕</span>
+      </button>
+      <h2 id="emergencyTitle">❤️ Key Helpers & Emergency Contacts</h2>
+      <p class="emergency-subtitle">These loving people are always ready to help you anytime.</p>
+      <div class="key-helpers-list" id="keyHelpersList">
+        <!-- Dynamic Key helpers list -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Announcement for Screen Readers and Comfort Toasts -->
+  <div id="toastNotification" class="toast-notification" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
